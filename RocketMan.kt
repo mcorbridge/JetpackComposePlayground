@@ -18,6 +18,20 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.mycompose.R
 
+/**
+ * This is an extension of the demo created by Mitch 'Coding With Mitch'
+ * where he illustrated (beautifully, I might add) how to use Jetpack Compose animation.
+ * I figured I would try to prove I understood what was going on by adding some
+ * additional function.  For example: would it be possible to stop the Rocket in flight and start
+ * it again at the point it last stopped?
+ * Probably.
+ * It took a little effort to achieve the solution, and here it is.
+ * Once again - this based on the original demo created by Mitch.  Please visit his channel and
+ * support him as he creates great lessons.
+ * (https://www.youtube.com/watch?v=hLERtWC1THw&t=159s&ab_channel=CodingWithMitch)
+ *
+ */
+
 class RocketMan {
 
     companion object {
@@ -55,9 +69,9 @@ class RocketMan {
             val resource: Painter
             val modifier: Modifier
             val rocketSize = 200.dp
-            var xPosInitialValue = remember { mutableStateOf(0f)}
-            var posX = remember { mutableStateOf(0f)}
-            var durMillis = remember { mutableStateOf(2000) }
+            val xPosInitialValue = remember { mutableStateOf(0f)}
+            val posX = remember { mutableStateOf(0f)}
+            val durMillis = remember { mutableStateOf(2000) }
 
             if (!isRocketEnabled) {
                 xPosInitialValue.value =  posX.value
@@ -90,7 +104,7 @@ class RocketMan {
                         )
                     )
                 )
-
+                // create the 'flame' illusion
                 resource = if (engineState.value <= 0.5f) {
                     painterResource(id = R.drawable.rocket1)
                 } else {
@@ -108,9 +122,8 @@ class RocketMan {
                         )
                     )
                 )
-
-                // what is this?
-                // no matter if the Rocket has been stopped during its progress, the initialValue must be set back to
+                // What is this?
+                // So... whether the Rocket has been stopped during its progress, or not, the initialValue must be set back to
                 // 0f when the Rocket finally reaches its apogee.
                 if(xPositionState.value >= 0.99){
                     xPosInitialValue.value = 0f
@@ -170,5 +183,5 @@ class RocketMan {
             }
         } // end LaunchButton
     } //end companion object
-    
+
 } // end class

@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,10 +31,10 @@ import com.example.mycompose.R
  * Usage: Just create an activity and drop 'SpinningMan.DoTheSpin()' into it.  Clicking on a gear
  * will stop it.  Clicking on it again will start it.  Have fun!!
  *
- * I have included ic_cogwheel.xml for use in this demo.  
+ * I have included ic_cogwheel.xml for use in this demo.
  */
 
-// TODO when any one spinner is stopped, the rest will stop
+
 class SpinningMan {
 
     companion object {
@@ -41,17 +42,25 @@ class SpinningMan {
         @Composable
         fun DoTheSpin() {
 
+            var spinState = remember { mutableStateOf(true) }
+
+            val lambda: (Boolean) -> Unit = { boolean: Boolean -> spinState.value = boolean }
+
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(color = Color.White)
-            ) {
+            )
+            {
 
                 //spinner one
                 Spinner(
                     maxWidth = maxWidth,
                     maxHeight = maxHeight,
-                    offsetPair = Pair((-47).dp, (-143).dp)
+                    offsetPair = Pair((-47).dp, (-140).dp),
+                    lambda = lambda,
+                    id = 0,
+                    spinState = spinState.value
                 )
 
                 //spinner two
@@ -59,14 +68,20 @@ class SpinningMan {
                     maxWidth = maxWidth,
                     maxHeight = maxHeight,
                     spinnerDirection = SpinDirection.CounterClockwise.degree,
-                    offsetPair = Pair((-30).dp, (-30).dp)
+                    offsetPair = Pair((-30).dp, (-30).dp),
+                    lambda = lambda,
+                    id = 1,
+                    spinState = spinState.value
                 )
 
                 //spinner three
                 Spinner(
                     maxWidth = maxWidth,
                     maxHeight = maxHeight,
-                    offsetPair = Pair(50.dp, 50.dp)
+                    offsetPair = Pair(48.dp, 50.dp),
+                    lambda = lambda,
+                    id = 2,
+                    spinState = spinState.value
                 )
 
             }
@@ -78,8 +93,11 @@ class SpinningMan {
 fun Spinner(
     maxWidth: Dp,
     maxHeight: Dp,
-    spinnerDirection: Int = 360,
-    offsetPair: Pair<Dp, Dp> = Pair(0.dp, 0.dp)
+    spinnerDirection: Int = SpinDirection.Clockwise.degree,
+    offsetPair: Pair<Dp, Dp> = Pair(0.dp, 0.dp),
+    lambda: (Boolean) -> Unit,
+    id: Int,
+    spinState: Boolean
 ) {
     val spinnerSize = 150.dp
     val resource: Painter = painterResource(id = R.drawable.ic_cogwheel)
@@ -87,24 +105,29 @@ fun Spinner(
     val spinz = remember { mutableStateOf(0f) }
     val initialValue = remember { mutableStateOf(0f) }
     val isStopStart = remember { mutableStateOf(false) }
-    val anotherSpinMaster = SpinMaster()
+    val spinMaster = SpinMaster()
     val spinDirection = remember { mutableStateOf(360) }
+    val numRevolutions = remember { mutableStateOf(0) }
 
-    if (spinnerDirection != SpinDirection.Clockwise.degree) {
-        spinDirection.value = SpinDirection.CounterClockwise.degree
-    }
-
-    if (spinz.value >= 0.99f) {
-        initialValue.value = 0f
-    }
-
-    if (isSpinning.value) {
-        anotherSpinMaster.DoSpin(isStopStart.value, initialValue.value) {
-            spinz.value = it
+    if(spinState){
+        if (spinnerDirection != SpinDirection.Clockwise.degree) {
+            spinDirection.value = SpinDirection.CounterClockwise.degree
         }
-        isStopStart.value = false
-    } else {
-        initialValue.value = spinz.value
+
+        if (spinz.value >= 0.99f) {
+            initialValue.value = 0f
+            numRevolutions.value++
+            println("$id revs = ${ numRevolutions.value }")
+        }
+
+        if (isSpinning.value) {
+            spinMaster.DoSpin(isStopStart.value, initialValue.value) {
+                spinz.value = it
+            }
+            isStopStart.value = false
+        } else {
+            initialValue.value = spinz.value
+        }
     }
 
     Image(
@@ -119,6 +142,7 @@ fun Spinner(
             .clickable {
                 isSpinning.value = !isSpinning.value
                 isStopStart.value = true
+                lambda(isSpinning.value)
             },
         painter = resource,
         contentDescription = "A Spinner"
